@@ -14,12 +14,36 @@ jobs:
       - name: Extrair projeto
         run: unzip -q CatKidAndroid-atualizado.zip
 
+      - name: Corrigir versões Java e Kotlin
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+
+          p = Path("CatKidAndroid/app/build.gradle.kts")
+          s = p.read_text()
+
+          s = s.replace(
+              '    buildFeatures { compose = true }',
+              '''    compileOptions {
+                  sourceCompatibility = JavaVersion.VERSION_17
+                  targetCompatibility = JavaVersion.VERSION_17
+              }
+              kotlinOptions {
+                  jvmTarget = "17"
+              }
+              buildFeatures { compose = true }'''
+          )
+
+          p.write_text(s)
+          PY
+
       - uses: actions/setup-java@v4
         with:
           distribution: temurin
           java-version: "17"
 
       - uses: android-actions/setup-android@v4
+
       - name: Instalar SDK
         run: sdkmanager "platforms;android-35" "build-tools;35.0.0"
 
